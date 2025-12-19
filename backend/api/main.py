@@ -62,7 +62,11 @@ class Message(BaseModel):
 @app.get("/")
 async def root():
     # In production, serve React app; in development, return API message
-    static_dir = Path(__file__).parent.parent.parent / "frontend" / "build"
+    # In Docker: /app/api/main.py -> /app/frontend/build (parent.parent)
+    # In local dev: backend/api/main.py -> frontend/build (parent.parent.parent)
+    static_dir = Path(__file__).parent.parent / "frontend" / "build"
+    if not static_dir.exists():
+        static_dir = Path(__file__).parent.parent.parent / "frontend" / "build"
     if static_dir.exists() and (static_dir / "index.html").exists():
         return FileResponse(static_dir / "index.html")
     return {"message": "Welcome to the ChatGPT Clone Backend!"}
@@ -135,7 +139,11 @@ async def clear_history():
     return {"message": "Chat history cleared."}
 
 # Serve static files from React build (for production) - must be last
-static_dir = Path(__file__).parent.parent.parent / "frontend" / "build"
+# In Docker: /app/api/main.py -> /app/frontend/build (parent.parent)
+# In local dev: backend/api/main.py -> frontend/build (parent.parent.parent)
+static_dir = Path(__file__).parent.parent / "frontend" / "build"
+if not static_dir.exists():
+    static_dir = Path(__file__).parent.parent.parent / "frontend" / "build"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir / "static")), name="static")
     
