@@ -5,6 +5,8 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? '' 
   : 'http://127.0.0.1:8000';
 
+// Login functionality has been removed - app is now accessible to all users
+
 function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
