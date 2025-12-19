@@ -9,7 +9,11 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Load environment variables from .env file in project root
-env_path = Path(__file__).parent.parent.parent / '.env'
+# Try Docker path first: /app/api/main.py -> /app/.env
+# Fallback to local dev path: backend/api/main.py -> .env
+env_path = Path(__file__).parent.parent / '.env'
+if not env_path.exists():
+    env_path = Path(__file__).parent.parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
 # Also try loading from current directory as fallback
@@ -62,7 +66,11 @@ class Message(BaseModel):
 @app.get("/")
 async def root():
     # In production, serve React app; in development, return API message
-    static_dir = Path(__file__).parent.parent.parent / "frontend" / "build"
+    # Try Docker path first: /app/api/main.py -> /app/frontend/build
+    static_dir = Path(__file__).parent.parent / "frontend" / "build"
+    # Fallback to local dev path: backend/api/main.py -> frontend/build
+    if not static_dir.exists():
+        static_dir = Path(__file__).parent.parent.parent / "frontend" / "build"
     if static_dir.exists() and (static_dir / "index.html").exists():
         return FileResponse(static_dir / "index.html")
     return {"message": "Welcome to the ChatGPT Clone Backend!"}
@@ -135,7 +143,11 @@ async def clear_history():
     return {"message": "Chat history cleared."}
 
 # Serve static files from React build (for production) - must be last
-static_dir = Path(__file__).parent.parent.parent / "frontend" / "build"
+# Try Docker path first: /app/api/main.py -> /app/frontend/build
+# Fallback to local dev path: backend/api/main.py -> frontend/build
+static_dir = Path(__file__).parent.parent / "frontend" / "build"
+if not static_dir.exists():
+    static_dir = Path(__file__).parent.parent.parent / "frontend" / "build"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir / "static")), name="static")
     
