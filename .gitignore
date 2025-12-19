@@ -1,0 +1,31 @@
+# Created by Cursor.so
+
+# Environments
+.env
+venv/
+backend/venv/
+
+# Node modules
+node_modules
+frontend/node_modules
+
+# build output
+build
+frontend/build
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
