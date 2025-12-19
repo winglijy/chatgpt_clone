@@ -4,10 +4,10 @@ FROM node:18-alpine AS frontend-builder
 WORKDIR /app/frontend
 
 # Copy frontend package files
-COPY frontend/package.json ./
+COPY frontend/package*.json ./
 
 # Install frontend dependencies
-RUN npm install
+RUN npm ci
 
 # Copy frontend source
 COPY frontend/ ./
@@ -24,9 +24,8 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend code (excluding venv and other ignored files)
-COPY backend/api ./api
-COPY backend/requirements.txt ./
+# Copy backend code
+COPY backend/ ./
 
 # Copy built frontend from builder stage
 COPY --from=frontend-builder /app/frontend/build ./frontend/build

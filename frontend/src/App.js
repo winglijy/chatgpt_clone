@@ -8,11 +8,7 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
 function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [selectedModel, setSelectedModel] = useState('deepseek');
-  const [showLoginForm, setShowLoginForm] = useState(false);
   const [chatSessions, setChatSessions] = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const chatWindowRef = useRef(null);
@@ -30,20 +26,6 @@ function App() {
     fetchHistory();
   }, []);
 
-  // Close login form when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (showLoginForm && !event.target.closest('[data-login-section]')) {
-        setShowLoginForm(false);
-      }
-    };
-    if (showLoginForm) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [showLoginForm]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -58,7 +40,7 @@ function App() {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (input.trim() && isLoggedIn) {
+    if (input.trim()) {
       const messageText = input;
       // Create new session if none exists
       if (!currentSessionId) {
@@ -101,33 +83,11 @@ function App() {
         method: 'POST',
       });
       setMessages([]);
+      setChatSessions([]);
+      setCurrentSessionId(null);
     } catch (error) {
       console.error("Error clearing chat history:", error);
     }
-  };
-
-  const handleLogin = () => {
-    // Placeholder for actual authentication logic
-    // Trim whitespace from inputs
-    const trimmedUsername = username.trim();
-    const trimmedPassword = password.trim();
-    
-    // For now, accept any non-empty credentials (placeholder authentication)
-    if (trimmedUsername && trimmedPassword) {
-      setIsLoggedIn(true);
-      setShowLoginForm(false);
-      setUsername('');
-      setPassword('');
-    } else {
-      alert('Please enter both username and password');
-    }
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setMessages([]);
-    setChatSessions([]);
-    setCurrentSessionId(null);
   };
 
   const createNewChat = () => {
@@ -177,62 +137,6 @@ function App() {
       <header style={styles.header}>
         <div style={styles.headerLeft}>
           <h1 style={styles.title}>ChatGPT Clone</h1>
-        </div>
-        <div style={styles.headerRight}>
-          {isLoggedIn ? (
-            <div style={styles.userSection}>
-              <span style={styles.userName}>Welcome, {username}!</span>
-              <button onClick={handleLogout} style={styles.logoutButton}>
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div style={styles.loginSection} data-login-section>
-              <button 
-                onClick={() => setShowLoginForm(!showLoginForm)} 
-                style={styles.loginButton}
-              >
-                Login
-              </button>
-              {showLoginForm && (
-                <div style={styles.loginForm}>
-                  <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    style={styles.loginInput}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter' && password) {
-                        handleLogin();
-                      }
-                    }}
-                  />
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    style={styles.loginInput}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter' && username && password) {
-                        handleLogin();
-                      }
-                    }}
-                  />
-                  <button onClick={handleLogin} style={styles.loginSubmitButton}>
-                    Sign In
-                  </button>
-                  <button 
-                    onClick={() => setShowLoginForm(false)} 
-                    style={styles.cancelButton}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </header>
       
@@ -288,9 +192,7 @@ function App() {
               <div style={styles.emptyState}>
                 <h2 style={styles.emptyStateTitle}>Start a conversation</h2>
                 <p style={styles.emptyStateText}>
-                  {isLoggedIn 
-                    ? "Send a message to begin chatting with the AI." 
-                    : "Please log in to start chatting."}
+                  Send a message to begin chatting with the AI.
                 </p>
               </div>
             ) : (
@@ -308,18 +210,16 @@ function App() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => {
-                if (e.key === 'Enter' && isLoggedIn) {
+                if (e.key === 'Enter') {
                   handleSendMessage();
                 }
               }}
               style={styles.inputField}
-              placeholder={isLoggedIn ? "Type your message..." : "Please log in to send messages"}
-              disabled={!isLoggedIn}
+              placeholder="Type your message..."
             />
             <button 
               onClick={handleSendMessage} 
-              style={isLoggedIn ? styles.sendButton : styles.sendButtonDisabled}
-              disabled={!isLoggedIn}
+              style={styles.sendButton}
             >
               Send
             </button>
@@ -361,88 +261,6 @@ const styles = {
     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
-  },
-  headerRight: {
-    display: 'flex',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  userSection: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '15px',
-  },
-  userName: {
-    color: '#666',
-    fontSize: '14px',
-  },
-  logoutButton: {
-    backgroundColor: '#f44336',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    padding: '8px 16px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
-    transition: 'background-color 0.2s',
-  },
-  loginSection: {
-    position: 'relative',
-  },
-  loginButton: {
-    backgroundColor: '#667eea',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    padding: '10px 20px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
-    transition: 'background-color 0.2s',
-  },
-  loginForm: {
-    position: 'absolute',
-    top: '50px',
-    right: 0,
-    backgroundColor: 'white',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-    minWidth: '250px',
-    zIndex: 1000,
-  },
-  loginInput: {
-    padding: '10px',
-    border: '1px solid #ddd',
-    borderRadius: '6px',
-    fontSize: '14px',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-  },
-  loginSubmitButton: {
-    backgroundColor: '#667eea',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    padding: '10px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '500',
-    transition: 'background-color 0.2s',
-  },
-  cancelButton: {
-    backgroundColor: '#f5f5f5',
-    color: '#666',
-    border: 'none',
-    borderRadius: '6px',
-    padding: '10px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    transition: 'background-color 0.2s',
   },
   mainContent: {
     display: 'flex',
@@ -628,17 +446,6 @@ const styles = {
     fontSize: '15px',
     fontWeight: '500',
     transition: 'background-color 0.2s',
-    minWidth: '80px',
-  },
-  sendButtonDisabled: {
-    backgroundColor: '#ccc',
-    color: 'white',
-    border: 'none',
-    borderRadius: '24px',
-    padding: '12px 24px',
-    cursor: 'not-allowed',
-    fontSize: '15px',
-    fontWeight: '500',
     minWidth: '80px',
   },
 };
